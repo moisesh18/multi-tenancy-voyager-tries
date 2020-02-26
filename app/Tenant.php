@@ -77,7 +77,7 @@ class Tenant
         app(Environment::class)->tenant($hostname->website);
 
         // We rename temporary tenant migrations to avoid creating system tenant tables in the tenant database
-        $migrations = getcwd() . '/database/migrations/';
+        $migrations = base_path() . '/database/migrations/';
         $files_to_preserve = glob($migrations . '*.php');
 
         foreach ($files_to_preserve as $file) {
@@ -94,7 +94,7 @@ class Tenant
         }
 
         // Cleanup Voyager dummy migrations from system migration folder
-        $voyager_migrations = getcwd() . '/vendor/tcg/voyager/publishable/database/migrations/*.php';
+        $voyager_migrations = base_path() . '/vendor/tcg/voyager/publishable/database/migrations/*.php';
         $files_to_kill = glob($voyager_migrations);
         $files_to_kill = array_map('basename', $files_to_kill);
 

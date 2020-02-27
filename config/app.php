@@ -2,6 +2,12 @@
 
 return [
 
+    /*Custom Administrum Variables */
+    'hostname' => env('APP_DOMAIN', 'administrum.test'),
+    'default_tenant_user' => env('DEFAULT_TENANT_USER', 'admin@admin.com'),
+    'default_tenant_password' => env('DEFAULT_TENANT_PASSWORD', 'password'),
+    'administrumemail' => env('ADMINISTRUM_EMAIL', 'admin@administrum.com'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -80,7 +86,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'es',
 
     /*
     |--------------------------------------------------------------------------

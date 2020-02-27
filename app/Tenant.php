@@ -63,6 +63,15 @@ class Tenant
         $name = strtolower($name);
         $email = strtolower($email);
 
+        // We rename temporary tenant migrations and seeders to avoid creating system tenant tables in the tenant database, and seed in tables that doesn't exists.
+        $migrations = base_path() . '/database/migrations/';
+        $migrations_to_preserve = glob($migrations . '*.php');
+        $migrations_to_preserve = Tenant::addExtension($migrations_to_preserve);
+
+        $seeders = base_path() . '/database/seeds/tenants/';
+        $seeders_to_preserve = glob($seeders . '*.php');
+        $seeders_to_preserve = Tenant::addExtension($seeders_to_preserve);
+
         $website = new Website;
         app(WebsiteRepository::class)->create($website);
 
@@ -76,31 +85,23 @@ class Tenant
         // make hostname current
         app(Environment::class)->tenant($hostname->website);
 
-        // We rename temporary tenant migrations to avoid creating system tenant tables in the tenant database
-        $migrations = base_path() . '/database/migrations/';
-        $files_to_preserve = glob($migrations . '*.php');
-
-        foreach ($files_to_preserve as $file) {
-            rename($file, $file . '.txt');
-        }
-
-        // \Artisan::call('voyager:install');
         \Artisan::call('config:clear');
-        \Artisan::call('voyager:install', ['--with-dummy' => true ]);
-        //\Artisan::call('passport:install');
-        
-        foreach ($files_to_preserve as $file) {
-            rename($file.'.txt', $file);
-        }
+        \Artisan::call('voyager:install');
+
+        Tenant::removeExtension($migrations_to_preserve);
+        Tenant::removeExtension($seeders_to_preserve);
+
+        \Artisan::call('tenancy:db:seed');
 
         // Cleanup Voyager dummy migrations from system migration folder
         $voyager_migrations = base_path() . '/vendor/tcg/voyager/publishable/database/migrations/*.php';
         $files_to_kill = glob($voyager_migrations);
         $files_to_kill = array_map('basename', $files_to_kill);
-
         foreach ($files_to_kill as $file) {
             $path = $migrations. '/'. $file;
-            unlink($path);
+            if(file_exists($path)){
+                unlink($path);
+            }
         }
 
         // Make the registered user the default Admin of the site.
@@ -125,5 +126,20 @@ class Tenant
     {
         // $name = $name . '.' . env('APP_URL_BASE');
         return Hostname::where('fqdn', $name)->exists();
+    }
+
+    public static function addExtension($files_to_preserve){
+        foreach ($files_to_preserve as $index=>$file) {
+            $files_to_preserve[$index] = $file . '.txt';
+            rename($file, $files_to_preserve[$index]);
+        }
+        return $files_to_preserve;
+    }
+
+    public static function removeExtension($files_to_preserve){
+        foreach ($files_to_preserve as $index=>$file) {
+            $files_to_preserve[$index] = str_replace(".txt", "" ,$file);
+            rename($file, $files_to_preserve[$index]);
+        }
     }
 }

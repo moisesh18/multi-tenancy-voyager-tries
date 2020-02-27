@@ -69,15 +69,15 @@ class VoyagerTenantsController extends \TCG\Voyager\Http\Controllers\VoyagerBase
 
             $tenant = Tenant::registerTenant($fqdn);
 
-            $data = Hostname::where('fqdn', $fqdn)->firstOrFail(); 
+            $data = Hostname::where('fqdn', $fqdn)->firstOrFail();
 
-            // This line is stored just in case from the parent class method. Would try to save to tenant `hostnames`. 
+            // This line is stored just in case from the parent class method. Would try to save to tenant `hostnames`.
             // So it's of no use. Leave here as an example and just in case.
             // $data = $this->insertUpdateData($request, $slug, $dataType->addRows, new $dataType->model_name());
 
-            // !!! IMPORTANT 
+            // !!! IMPORTANT
             // If you add additional fields to system `hostnames` table
-            // (it's assumed you have created and executed corresponding migrations, updated `hostnames` Voyager bread) 
+            // (it's assumed you have created and executed corresponding migrations, updated `hostnames` Voyager bread)
             // and want to save the additional fields, just uncomment the line below.
             // $data = $this->insertUpdateData($request, $slug, $dataType->editRows, $data);
 
@@ -86,7 +86,6 @@ class VoyagerTenantsController extends \TCG\Voyager\Http\Controllers\VoyagerBase
             if ($request->ajax()) {
                 return response()->json(['success' => true, 'data' => $data]);
             }
-
             return redirect()
                 ->route("voyager.{$dataType->slug}.index")
                 ->with([
@@ -111,14 +110,14 @@ class VoyagerTenantsController extends \TCG\Voyager\Http\Controllers\VoyagerBase
     public function destroy(Request $request, $id)
     {
         if (!$this->isTenantOperation($request)) {
-            return parent::destroy($request);
+            return parent::destroy($request, $id);
         }
 
         $slug = $this->getSlug($request);
 
         $dataType = Voyager::model('DataType')->where('slug', '=', $slug)->first();
 
-        $fqdn = Hostname::where('id', $id)->firstOrFail(['fqdn'])->fqdn; 
+        $fqdn = Hostname::where('id', $id)->firstOrFail(['fqdn'])->fqdn;
         $systemSite = \App\Tenant::getRootFqdn();
 
         if ( $systemSite === $fqdn ) {
@@ -152,7 +151,7 @@ class VoyagerTenantsController extends \TCG\Voyager\Http\Controllers\VoyagerBase
 
         $displayName = count($ids) > 1 ? $dataType->display_name_plural : $dataType->display_name_singular;
 
-        // TODO ##mygruz20190213014253 
+        // TODO ##mygruz20190213014253
         // If deleting several domains, we can get partial successfull result. We must properly handle the situations.
         // Currently if we have at least one (or last) success, we return a success message.
         $data = $res
@@ -178,7 +177,7 @@ class VoyagerTenantsController extends \TCG\Voyager\Http\Controllers\VoyagerBase
         if (!$this->isTenantOperation($request)) {
             return parent::update($request, $id);
         }
-        
+
 
         $systemSiteId = Hostname::where('website_id', null)->first()->id;
         $systemSite = \App\Tenant::getRootFqdn();
